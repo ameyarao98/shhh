@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"github.com/ameyarao98/shhh/backend/internal"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
-	http.HandleFunc("/health", internal.Health)
+	r := chi.NewRouter()
+	r.Get("/health", internal.Health)
 
 	fmt.Println("Server running")
 	err := http.ListenAndServe(":8000", nil)
