@@ -13,7 +13,7 @@ import (
 )
 
 type Room struct {
-	clients sync.Map // map[*Client]bool
+	clients []*Client
 }
 
 type Client struct {
@@ -57,7 +57,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 func createRoomHandler(w http.ResponseWriter, r *http.Request) {
 	roomID := uuid.New().String()
 	room := &Room{
-		clients: sync.Map{},
+		clients: []*Client{},
 	}
 	rooms.Store(roomID, room)
 
@@ -102,6 +102,5 @@ func joinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		username: username,
 		conn:     conn,
 	}
-
-	room.clients.Store(client, true)
+	room.clients = append(room.clients, client)
 }
