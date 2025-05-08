@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"sync"
 
+	"slices"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
@@ -103,4 +105,42 @@ func joinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		conn:     conn,
 	}
 	room.clients = append(room.clients, client)
+	go handleMessages(room, client)
+}
+
+func handleMessages(room *Room, client *Client) {
+	defer func() {
+		if err := client.conn.Close(); err != nil {
+			log.Printf("Error closing connection: %v", err)
+		}
+		// Remove client from room when they disconnect
+		for i, c := range room.clients {
+			if c == client {
+				room.clients = slices.Delete(room.clients, i, i+1)
+				break
+			}
+		}
+	}()
+
+	for {
+		var msg Message
+		err := client.conn.ReadJSON(&msg)
+		if err != nil {
+			log.Printf("Error reading message: %v", err)
+			break
+		}
+
+		msg.Username = client.username
+
+		broadcastToRoom(room, msg)
+	}
+}
+
+func broadcastToRoom(room *Room, msg Message) {
+	for _, client := range room.clients {
+		err := client.conn.WriteJSON(msg)
+		if err != nil {
+			log.Printf("Error broadcasting to client %s: %v", client.username, err)
+		}
+	}
 }
