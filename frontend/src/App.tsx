@@ -4,7 +4,7 @@ import styles from "./App.module.css";
 const App: Component = () => {
 	return (
 		<div class={styles.App}>
-			<header class={styles.header}>
+			<header>
 				<p>Shhh</p>
 			</header>
 		</div>
