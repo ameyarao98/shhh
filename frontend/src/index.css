@@ -1,6 +1,6 @@
 body {
 	background-image: url("./assets/sheep-bg.webp");
-	margin: 0;
+	background-size: cover;
 }
 
 code {
