@@ -20,13 +20,11 @@ type Room struct {
 }
 
 type Client struct {
-	conn     *websocket.Conn
-	username string
+	conn *websocket.Conn
 }
 
 type Message struct {
-	Username string `json:"username"`
-	Content  string `json:"content"`
+	Content string `json:"content"`
 }
 
 type CreateRoomResponse struct {
@@ -52,7 +50,7 @@ func main() {
 
 	r.Get("/health", healthHandler)
 	r.Post("/room/create", createRoomHandler)
-	r.Post("/room/{id}/join", joinRoomHandler)
+	r.Get("/room/{id}/join", joinRoomHandler)
 
 	log.Println("Server starting on :8000")
 	log.Fatal(http.ListenAndServe(":8000", r))
@@ -94,11 +92,6 @@ func joinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	room := roomInterface.(*Room)
 
-	username := r.URL.Query().Get("username")
-	if username == "" {
-		http.Error(w, "Username required", http.StatusBadRequest)
-		return
-	}
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true // Allow all origins for simplicity
@@ -111,8 +104,7 @@ func joinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		username: username,
-		conn:     conn,
+		conn: conn,
 	}
 	room.clients = append(room.clients, client)
 	go handleMessages(room, client)
@@ -140,8 +132,6 @@ func handleMessages(room *Room, client *Client) {
 			break
 		}
 
-		msg.Username = client.username
-
 		broadcastToRoom(room, msg)
 	}
 }
@@ -150,7 +140,7 @@ func broadcastToRoom(room *Room, msg Message) {
 	for _, client := range room.clients {
 		err := client.conn.WriteJSON(msg)
 		if err != nil {
-			log.Printf("Error broadcasting to client %s: %v", client.username, err)
+			log.Printf("Error broadcasting to client: %v", err)
 		}
 	}
 }
