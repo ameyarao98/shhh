@@ -12,12 +12,15 @@ const App: Component = () => {
 		setResponse("");
 
 		try {
-			const res = await fetch("http://localhost:8000/room/create", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
+			const res = await fetch(
+				`${import.meta.env.VITE_BACKEND_HOST}/room/create`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
 				},
-			});
+			);
 
 			if (!res.ok) {
 				throw new Error(
